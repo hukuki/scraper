@@ -2,12 +2,18 @@ from scraper import KararAramaDanistayScraper, KararAramaYargitayScraper, EmsalT
 from threading import Thread
 
 if __name__ == '__main__':
-    scrapers = [
-				KararAramaDanistayScraper(), 
-				KararAramaYargitayScraper(), 
-				EmsalTuyapScraper()
-				]
-    threads = [Thread(target=scraper.scrape) for scraper in scrapers]
 
-    for thread in threads:
-        thread.start()
+	yargitay_range = None # e.g. (1, 100)
+	danistay_range = None # e.g. (1, 100)
+	emsal_turyap_range = None # e.g. (1, 100)
+
+	scrapers = [
+		KararAramaDanistayScraper(yargitay_range), 
+		KararAramaYargitayScraper(danistay_range), 
+		EmsalTuyapScraper(emsal_turyap_range)
+	]
+
+	threads = [Thread(target=scraper.scrape) for scraper in scrapers]
+
+	for thread in threads:
+		thread.start()
