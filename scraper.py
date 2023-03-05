@@ -35,6 +35,9 @@ class AbstractScraper(ABC):
 	def print_message(self, message):
 		print('[' + self.__class__.__name__  + '] ' + message)
 
+	def does_page_exist(self, page_index):
+		return os.path.exists(self.page_path + "/page-" + str(page_index) + "-"+self._encoded_url + ".txt")
+
 	def on_error(self):
 		self.print_message("error at page: " + str(self.current_page))
 
@@ -66,6 +69,11 @@ class AbstractScraper(ABC):
 		self.print_message("total page count: " + str(self.page_count))
 
 		while self.current_page < self.page_count:
+			if self.does_page_exist(self.current_page):
+				self.current_page += 1
+				self.print_message("page " + str(self.current_page) + " already exists.")
+				continue
+
 			res = self.send_request()
 
 			if res == None: res = self.on_error()
