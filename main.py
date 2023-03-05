@@ -11,7 +11,7 @@ if __name__ == '__main__':
 	emsal_tuyap_range = partition(2518, 3357, num_thread_for_each)
 	
 	scrapers = [
-		#*[KararAramaDanistayScraper(r) for r in yargitay_range], 
+		#*[KararAramaDanistayScraper(r) for r in danistay_range], 
 		*[KararAramaYargitayScraper(r) for r in yargitay_range], 
 		#*[EmsalTuyapScraper(r) for emsal_tuyap_range in emsal_tuyap_range]
 	]
