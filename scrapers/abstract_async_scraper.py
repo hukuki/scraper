@@ -10,22 +10,17 @@ from bs4 import BeautifulSoup
 class AbstractAsyncScraper(ABC):
     """
     Abstract class for scraping documents from a website asynchronously. The concrete class must implement the following methods:
-    get_max_page_count: returns the maximum number of pages to scrape. It is usually specified samewhere in the website html.
-    parse_page: parses the html of a page and returns a list of documents. Each document is a python dictionary with metadata about the document. The 'href' is a must-to-have key.
-    parse_doc_name: parses the document and returns a string that will be used as the name of the file.
-                    e.g. (doc["karar_sayisi"] + "_" + doc["esas_sayisi"]).replace("/", "-") => 2019-123_2019-45
-    get_next_page: returns the next page to scrape. This method is usually implemented by incrementing a counter. Due to possible variation, this method is not implemented in the abstract class.
-    parse_url_from_page: parses the URLs to be extracted from the given page.
 
-
-    Here a few notes:
-    -page is the html of a page, returned by the pagination method of the website. For parsing, we use the BeautifulSoup library.
-    -dic is a python dictionary with metadata about the document. The 'href' is a must-to-have key.
-    -doc_name is the name of the file that will be saved. Due to variation in naming convention (e.g karar sayisi, esas sayisi, etc.), this method is not implemented in the abstract class. The child class must implement this method.
-    -content is the text of the document. Don't worry about the different structures and encodings (like .docs and .pdfs). We will handle them in the preprocessing step.
-    -The child class can override the request_doc method if the default approach does not work.
-
-
+    get_max_page_count: Returns the maximum number of pages to scrape. It is usually specified same place in the website html.
+    get_all_pages: Returns a list of page requests.
+                   The list consits of GRequests request objects.
+    doc_name: Expects a dictionary including "href" as a key.
+              Returns the name of the file that will be used to save the document.
+    parse_page: Expects a BeatifulSoup object.
+                Returns a list of dictionaries.
+                Each dict in the list stores metadata about the document.
+                Each dict must have  "href" as a key.
+                The returned list is used to create GRequests request objects in get_all_urls method.
     """
     #Constants
     INITIAL_ERROR_WAIT_TIME = 15
@@ -158,15 +153,6 @@ class AbstractAsyncScraper(ABC):
     def print_message(self, message):
         print('[' + self.__class__.__name__  + '] ' + message)
 
-    def get_next_doc(self):
-        """"
-        Yields the next document by iterating pages and documents. Here, doc is a python dictionary with metadata about the document.
-        The 'href' is a must-to-have key.
-        """
-        for page in self.get_next_page():
-            self.print_message("Current page: " + str(self.current_page_count))
-            for doc in self.parse_page(page):
-                yield doc
 
     def get_all_urls(self):
         """
