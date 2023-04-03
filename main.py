@@ -1,4 +1,5 @@
 from scraper import KararAramaDanistayScraper, KararAramaYargitayScraper, EmsalTuyapScraper
+from scrapers.mevzuat_scraper import MevzuatScraper
 from scrapers.uyusmazlik_scraper import UyusmazlikScaper
 from threading import Thread
 from util import partition
@@ -22,5 +23,6 @@ if __name__ == '__main__':
 	# for thread in threads:
 	# 	thread.start()
 	
-	scrapper = UyusmazlikScaper("output/uyusmazlik")
-	scrapper.scrape()
+	#scrapper = MevzuatScraper("output/mevzuat")
+	scraper = UyusmazlikScaper("output/uyusmazlik")
+	scraper.scrape()

@@ -3,6 +3,7 @@ from time import sleep
 import requests, os, json
 import urllib.parse
 import random
+from base64 import b64encode
 
 class AbstractScraper(ABC):
     """Abstract class for scraping documents from a website. The child class must implement the following methods:
@@ -60,7 +61,7 @@ class AbstractScraper(ABC):
         while True:
             result = requests.get(self.base_url + url, verify=False)
             if result.status_code == 200:
-                return result.text
+                return result.content
             else:
                 consecutive_errors += 1
                 sleep_time = (self.INITIAL_ERROR_WAIT_TIME*consecutive_errors) + random.random()*5
@@ -78,7 +79,7 @@ class AbstractScraper(ABC):
         result = requests.get(self.base_url + url, verify=False)
 
         if result.status_code == 200:
-            return result.text
+            return result.content
         else:
             return self.on_error(url)
 
@@ -102,7 +103,9 @@ class AbstractScraper(ABC):
         for doc in self.get_next_doc():
             if not self.check_if_doc_exists(doc) and "href" in doc:
                 content = self.request_doc(doc["href"])
-                doc["content"] = content
+                content_b64 = b64encode(content).decode('ascii')
+                
+                doc["content"] = content_b64
                 self.save_doc(doc)
                 self.consec_up_to_date_docs = 0
             else:
