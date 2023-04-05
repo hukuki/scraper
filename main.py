@@ -23,6 +23,6 @@ if __name__ == '__main__':
 	# for thread in threads:
 	# 	thread.start()
 	
-	#scrapper = MevzuatScraper("output/mevzuat")
-	scraper = UyusmazlikScaper("output/uyusmazlik")
+	scraper = MevzuatScraper("output/mevzuat")
+	#scraper = UyusmazlikScaper("output/uyusmazlik")
 	scraper.scrape()
