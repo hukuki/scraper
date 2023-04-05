@@ -3,6 +3,7 @@ import requests
 import json
 from bs4 import BeautifulSoup
 from pathlib import Path
+from urllib.parse import urlparse, parse_qs
 
 class MevzuatScraper(AbstractScraper):
     def __init__(self, output_path):
@@ -64,6 +65,11 @@ class MevzuatScraper(AbstractScraper):
                 item["href"] = item["url"]
             else:
                 # Plaintext html
-                item["href"] =  "anasayfa/MevzuatFihristDetayIframe?" + item["url"].replace('mevzuat?', '')
+                # item["href"] =  "anasayfa/MevzuatFihristDetayIframe?" + item["url"].replace('mevzuat?', '')
+                # As doc (MS Word file) :
+                parsed_url = urlparse(item["url"])
+                parsed_query = parse_qs(parsed_url.query)
+
+                item["href"] = "MevzuatMetin/"+ parsed_query["MevzuatTur"][0] + "." + parsed_query["MevzuatTertip"][0] + "." + parsed_query["MevzuatNo"][0] + ".doc"
 
             yield item

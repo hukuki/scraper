@@ -68,6 +68,14 @@ class AbstractScraper(ABC):
                 self.print_message("Retrying... Wait "+str(sleep_time)+" seconds")
                 sleep(sleep_time)
     
+    def update_doc(self, doc):
+        """
+        Currently, save_doc is not implemented!!!
+        It should not override the contents of the file, but rather, change the doc 
+        content, and the updatedAt field only.
+        """
+        return self.save_doc(doc)
+
     def save_doc(self, doc):
         """Saves the document to the output directory. The naming convention is specified by the child class."""
         doc_name = self.parse_doc_name(doc)
@@ -115,8 +123,8 @@ class AbstractScraper(ABC):
             self.print_message('File structure is corrupted for the file `'+path+'`. Overriding with new content.')
             return False
 
-    def print_message(self, message):
-        print('[' + self.__class__.__name__  + '] ' + message)
+    def print_message(self, *message):
+        print('[' + self.__class__.__name__  + '] ', *message)
 
     def get_next_doc(self):
         """"Yields the next document by iterating pages and documents. Here, doc is a python dictionary with metadata about the document. The 'href' is a must-to-have key."""
