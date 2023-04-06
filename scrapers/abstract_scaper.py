@@ -26,12 +26,14 @@ class AbstractScraper(ABC):
     #Constants
     INITIAL_ERROR_WAIT_TIME = 15
 
-    def __init__(self, base_url, starting_page_count, output_dir, headers={}):
+    def __init__(self, base_url, starting_page_count, output_dir, headers={}, log_file=None):
         self.base_url = base_url
         self.max_page_count = int(self.get_max_page_count())
         self.current_page_count = starting_page_count
         self.consec_up_to_date_docs = 0
         self.output_dir = output_dir
+        self.headers = headers
+        self.log_file = log_file
 
     @abstractmethod
     def get_max_page_count(self):
@@ -88,8 +90,8 @@ class AbstractScraper(ABC):
            "doc": doc
         }
         
-        with open(os.path.join(self.output_dir, doc_name) + ".json", "w") as f:
-            json.dump(wrapped_doc, f)
+        with open(os.path.join(self.output_dir, doc_name) + ".json", "w", encoding="utf-8") as f:
+            json.dump(wrapped_doc, f, ensure_ascii=False)
 
     def request_doc(self, url):
         """Sends a request to get the document. Note that this approach might not work for all websites. In this case, the child class should override this method."""
@@ -126,6 +128,12 @@ class AbstractScraper(ABC):
     def print_message(self, *message):
         print('[' + self.__class__.__name__  + '] ', *message)
 
+    def log(self, *message):
+        if self.log_file is not None:
+            with open(self.log_file, 'a') as f:
+                # log with date time
+                f.write(datetime.now().isoformat()+ '[' + self.__class__.__name__  + '] ' + ' '.join(message) + '\n')                        
+
     def get_next_doc(self):
         """"Yields the next document by iterating pages and documents. Here, doc is a python dictionary with metadata about the document. The 'href' is a must-to-have key."""
         for page in self.get_next_page():
@@ -137,6 +145,9 @@ class AbstractScraper(ABC):
         """Scrapes all documents from the base url by iterating through docs. """
         for doc in self.get_next_doc():
             content = self.request_doc(doc["href"])
+            if content is None:
+                continue
+            
             content_b64 = b64encode(content).decode('ascii')
                 
             doc["content"] = content_b64

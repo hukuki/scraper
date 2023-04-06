@@ -6,15 +6,15 @@ from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
 class MevzuatScraper(AbstractScraper):
-    def __init__(self, output_path):
-        self.body = {"draw":1,"columns":[{"data":None,"name":"","searchable":True,"orderable":False,"search":{"value":"","regex":False}},{"data":None,"name":"","searchable":True,"orderable":False,"search":{"value":"","regex":False}},{"data":None,"name":"","searchable":True,"orderable":False,"search":{"value":"","regex":False}}],"order":[],"start":0,"length":10,"search":{"value":"","regex":False},"parameters":{"AranacakIfade":"Kg==","AranacakYer":"Baslik","TamCumle":False,"MevzuatTur":0,"GenelArama":True}}
+    def __init__(self, output_path, log_file=None):
+        self.body = {"draw":1,"columns":[{"data":None,"name":"","searchable":True,"orderable":False,"search":{"value":"","regex":False}},{"data":None,"name":"","searchable":True,"orderable":False,"search":{"value":"","regex":False}},{"data":None,"name":"","searchable":True,"orderable":False,"search":{"value":"","regex":False}}],"order":[],"start":0,"length":100,"search":{"value":"","regex":False},"parameters":{"AranacakIfade":"Kg==","AranacakYer":"Baslik","TamCumle":False,"MevzuatTur":0,"GenelArama":True}}
         self.headers = {
             "Content-Type": "application/json; charset=UTF-8",
             "Accept": "application/json, text/javascript, */*; q=0.01",
             "Accept-Language": "en-US,en;q=0.9,pt;q=0.8,tr;q=0.7,it;q=0.6",
         }
-        super().__init__("https://www.mevzuat.gov.tr/", 1, output_path)
 
+        super().__init__("https://www.mevzuat.gov.tr/", 1, output_path, headers=self.headers, log_file=log_file)
         Path(output_path).mkdir(parents=True, exist_ok=True)
 
     def get_next_page(self):
@@ -32,17 +32,32 @@ class MevzuatScraper(AbstractScraper):
 
             self.current_page_count += 1
             self.body["draw"] += 1
-            self.body["start"] += 10
+            self.body["start"] += 100
 
     def get_max_page_count(self):
         response = requests.post(self.base_url + 'anasayfa/MevzuatDatatable', data=json.dumps(self.body), headers=(self.headers))
 
         json_data = json.loads(response.text)
 
-        return json_data['recordsTotal'] // 10
+        return json_data['recordsTotal'] // 100
 
     def parse_doc_name(self, single_doc):
-        return single_doc["mevzuatNo"] + "_" + single_doc["kabulTarih"]
+        # return single_doc["mevzuatNo"] + "_" + single_doc["kabulTarih"]
+        return f'{single_doc["mevzuatTur"]}_{single_doc["mevzuatTertip"]}_{single_doc["mevzuatNo"]}'
+    
+    def request_doc(self, url):
+        """Sends a request to get the document. Note that this approach might not work for all websites. In this case, the child class should override this method."""
+        result = requests.get(self.base_url + url)
+
+        if result.status_code == 200:
+            if result.headers['Content-Type'] == 'application/msword':
+                return result.content
+            else:
+                self.log(f'Couldn\'t download: {url}')
+                print(f'Couldn\'t download: {url}')
+                return None
+        else:
+            return self.on_error(url)
 
     def parse_page(self, page):
         """
